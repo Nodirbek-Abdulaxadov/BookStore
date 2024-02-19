@@ -16,7 +16,8 @@ public class ImagesController(IS3Interface s3Interface)
         try
         {
             var fileKey = await s3Interface.UploadFileAsync(file);
-            return Ok(fileKey);
+            string url = $"{Request.Scheme}://{Request.Host}{Request.PathBase}/api/Images/{fileKey}";
+            return Ok(url);
         }
         catch (Exception ex)
         {

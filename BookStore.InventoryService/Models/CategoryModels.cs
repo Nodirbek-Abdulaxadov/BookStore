@@ -1,3 +1,6 @@
 ﻿namespace BookStore.InventoryService.Models;
 
-public record AddCategory(string Name);
+public record AddCategory(
+    [Required, MinLength(3)]
+    string Name
+);

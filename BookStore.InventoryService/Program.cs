@@ -1,4 +1,5 @@
 using BookStore.InventoryService.Data;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddTransient<ICategoryInterface, CategoryRepository>();
+builder.Services.AddTransient<IBookInterface, BookRepository>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -14,14 +16,17 @@ builder.Services.AddSingleton(st => new InventoryDatabase(
         builder.Configuration.GetConnectionString("Database")!
     ));
 
+
+builder.Services.Configure<ConfigurationOptions>(builder.Configuration.GetSection("RedisCacheOptions"));
+builder.Services.AddStackExchangeRedisCache(setupAction =>
+{
+    setupAction.Configuration = builder.Configuration.GetConnectionString("Redis");
+});
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
