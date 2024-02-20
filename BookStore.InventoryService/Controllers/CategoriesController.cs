@@ -1,4 +1,5 @@
 ﻿using BookStore.Core.Helpers;
+using BookStore.InventoryService.Models.Dtos;
 using Microsoft.Extensions.Caching.Distributed;
 
 namespace BookStore.InventoryService.Controllers;
@@ -6,11 +7,14 @@ namespace BookStore.InventoryService.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 public class CategoriesController(ICategoryInterface categoryInterface,
-                                  IDistributedCache cache)
+                                  IDistributedCache cache,
+                                  IBookInterface bookInterface)
     : ControllerBase
 {
     private readonly ICategoryInterface _categories = categoryInterface;
     private readonly IDistributedCache _cache = cache;
+    private readonly IBookInterface _bookInterface = bookInterface;
+    private readonly Mapper _mapper = new(bookInterface, categoryInterface);
     private const string _cacheKey = "categories";
 
     [HttpGet]
@@ -29,6 +33,19 @@ public class CategoriesController(ICategoryInterface categoryInterface,
         }
 
         var json = Json.Serialize(categories);
+
+        return Ok(json);
+    }
+
+    [HttpGet("with-books")]
+    public async Task<IActionResult> GetCategoriesWithBooks()
+    {
+        var categories = await _categories.GetCategories();
+        var books = await _bookInterface.GetBooks();
+
+        var dtos = categories.Select(_mapper.MapToCategoryDto);
+
+        var json = Json.Serialize(dtos);
 
         return Ok(json);
     }

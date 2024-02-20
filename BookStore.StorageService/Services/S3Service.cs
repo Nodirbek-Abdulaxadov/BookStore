@@ -1,12 +1,15 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
+using TinifyAPI;
 
 namespace BookStore.StorageService.Services;
 
-public class S3Service(IAmazonS3 s3Client)
+public class S3Service(IAmazonS3 s3Client,
+    IConfiguration configuration)
     : IS3Interface
 {
     private readonly IAmazonS3 s3Client = s3Client;
+    private readonly IConfiguration _configuration = configuration;
     private const string bucketName = "book-store-fn1";
 
     public async Task<string> UploadFileAsync(IFormFile file)
@@ -15,14 +18,23 @@ public class S3Service(IAmazonS3 s3Client)
         var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
         var fileKey = bucketName + "/" + fileName;
 
-        var putObjectRequest = new PutObjectRequest
-        {
-            InputStream = fileStream,
-            BucketName = bucketName,
-            Key = fileName
-        };
+        var fileBytes = new byte[fileStream.Length];
+        fileStream.Read(fileBytes, 0, fileBytes.Length);
 
-        await s3Client.PutObjectAsync(putObjectRequest);
+        _ = Task.Run(async () =>
+        {
+            Tinify.Key = _configuration["TinifyApiKey"];
+            var compressedData = await Tinify.FromBuffer(fileBytes).ToBuffer();
+
+            var putObjectRequest = new PutObjectRequest
+            {
+                InputStream = new MemoryStream(compressedData),
+                BucketName = bucketName,
+                Key = fileName
+            };
+
+            await s3Client.PutObjectAsync(putObjectRequest);
+        });
 
         return fileName;
     }

@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="3.7.305.27" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="Tinify" Version="1.6.0" />
   </ItemGroup>
 
 </Project>
