@@ -12,7 +12,7 @@ public class EmailService
         _smtpClient = new SmtpClient("smtp.gmail.com", 587)
         {
             Port = 587,
-            Credentials = new NetworkCredential("avazbekaolimov@gmail.com", "qufw fodp gejm chsz"),
+            Credentials = new NetworkCredential("your-email", "your-key"),
             EnableSsl = true,
             UseDefaultCredentials = false
         };
