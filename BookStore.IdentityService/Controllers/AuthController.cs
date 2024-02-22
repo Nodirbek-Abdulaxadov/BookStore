@@ -1,7 +1,9 @@
-﻿using BookStore.IdentityService.Data.Entities;
+﻿using BookStore.Core.Helpers;
+using BookStore.IdentityService.Data.Entities;
 using BookStore.IdentityService.Extend;
 using BookStore.IdentityService.Models;
 using BookStore.IdentityService.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookStore.IdentityService.Controllers;
@@ -24,6 +26,146 @@ public class AuthController(IUserService userService)
         catch (AuthException ex)
         {
             return BadRequest(ex.Message);
+        }
+        catch(Exception ex)
+        {
+            LoggerBot.Log(ex.Message, LogType.Error);
+            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+        }
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(LoginUserDto dto)
+    {
+        try
+        {
+            var result = await userService.LoginUserAsync(dto);
+            return Ok(result);
+        }
+        catch (AuthException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (UnAuthorizedException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            LoggerBot.Log(ex.Message, LogType.Error);
+            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+        }
+    }
+
+    [HttpPost("change-password")]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword(ChangePasswordDto dto)
+    {
+        try
+        {
+            var result = await userService.ChangePasswordAsync(dto);
+            return Ok(result);
+        }
+        catch (AuthException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (UnAuthorizedException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            LoggerBot.Log(ex.Message, LogType.Error);
+            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+        }
+    }
+
+    [HttpDelete("delete-account/{email}")]
+    [Authorize]
+    public async Task<IActionResult> DeleteAccount(string email)
+    {
+        try
+        {
+            await userService.DeleteAccountAsync(email);
+            return Ok();
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            LoggerBot.Log(ex.Message, LogType.Error);
+            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+        }
+    }
+
+    [HttpPost("update-profile")]
+    [Authorize] 
+    public async Task<IActionResult> UpdateProfile(UpdateProfileDto dto)
+    {
+        try
+        {
+            var result = await userService.UpdateProfileAsync(dto);
+            return Ok(result);
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            LoggerBot.Log(ex.Message, LogType.Error);
+            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+        }
+    }
+
+    [HttpPost("change-email")]
+    [Authorize]
+    public async Task<IActionResult> ChangeEmail(string email, string newEmail)
+    {
+        try
+        {
+            await userService.ChangeEmailAsync(email, newEmail);
+            return Ok();
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            LoggerBot.Log(ex.Message, LogType.Error);
+            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+        }
+    }
+
+    [HttpPost("logout")]
+    [Authorize]
+    public async Task<IActionResult> Logout(string email)
+    {
+        try
+        {
+            await userService.LogoutAsync(email);
+            return Ok();
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            LoggerBot.Log(ex.Message, LogType.Error);
+            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
         }
     }
 
@@ -64,9 +206,14 @@ public class AuthController(IUserService userService)
 
             return contentResult;
         }
-        catch (AuthException ex)
+        catch (NotFoundException ex)
         {
-            return BadRequest(ex.Message);
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            LoggerBot.Log(ex.Message, LogType.Error);
+            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
         }
     }
 }

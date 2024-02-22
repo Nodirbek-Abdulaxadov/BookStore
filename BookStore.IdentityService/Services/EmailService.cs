@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using BookStore.Core.Helpers;
+using System.Net;
 using System.Net.Mail;
 
 namespace BookStore.IdentityService.Services;
@@ -12,7 +13,7 @@ public class EmailService
         _smtpClient = new SmtpClient("smtp.gmail.com", 587)
         {
             Port = 587,
-            Credentials = new NetworkCredential("your-email", "your-key"),
+            Credentials = new NetworkCredential("Your email", "Your key"),
             EnableSsl = true,
             UseDefaultCredentials = false
         };
@@ -58,9 +59,16 @@ public class EmailService
             """;
             mail.IsBodyHtml = true;
 
-            using (_smtpClient)
+            try
             {
-                _smtpClient.Send(mail);
+                using (_smtpClient)
+                {
+                    _smtpClient.Send(mail);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerBot.Log(ex.Message, LogType.Error);
             }
         }
     }

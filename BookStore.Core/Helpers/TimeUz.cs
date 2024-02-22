@@ -1,4 +1,4 @@
-﻿namespace BookStore.IdentityService.Extend;
+﻿namespace BookStore.Core.Helpers;
 
 public static class TimeUz
 {
