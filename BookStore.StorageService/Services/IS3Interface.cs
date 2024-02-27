@@ -2,7 +2,8 @@
 
 public interface IS3Interface
 {
-    public Task<string> UploadFileAsync(IFormFile file);
-    public Task<Stream> GetFileUrlAsync(string fileName);
-    public Task DeleteFileAsync(string fileName);
+    Task<string> UploadFileAsync(IFormFile file);
+    Task<string> UploadFileWithoutBGAsync(IFormFile file);
+    Task<Stream> GetFileUrlAsync(string fileName);
+    Task DeleteFileAsync(string fileName);
 }

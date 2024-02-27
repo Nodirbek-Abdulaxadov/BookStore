@@ -5,14 +5,16 @@ using TinifyAPI;
 namespace BookStore.StorageService.Services;
 
 public class S3Service(IAmazonS3 s3Client,
-    IConfiguration configuration)
+                       IConfiguration configuration,
+                       ExternalServices externalServices)
     : IS3Interface
 {
     private readonly IAmazonS3 s3Client = s3Client;
     private readonly IConfiguration _configuration = configuration;
+    private readonly ExternalServices _externalServices = externalServices;
     private const string bucketName = "book-store-fn1";
 
-    public async Task<string> UploadFileAsync(IFormFile file)
+    public Task<string> UploadFileAsync(IFormFile file)
     {
         using var fileStream = file.OpenReadStream();
         var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
@@ -23,8 +25,7 @@ public class S3Service(IAmazonS3 s3Client,
 
         _ = Task.Run(async () =>
         {
-            Tinify.Key = _configuration["TinifyApiKey"];
-            var compressedData = await Tinify.FromBuffer(fileBytes).ToBuffer();
+            var compressedData = await _externalServices.CopressImage(fileBytes);
 
             var putObjectRequest = new PutObjectRequest
             {
@@ -36,7 +37,7 @@ public class S3Service(IAmazonS3 s3Client,
             await s3Client.PutObjectAsync(putObjectRequest);
         });
 
-        return fileName;
+        return Task.FromResult(fileName);
     }
 
     public async Task<Stream> GetFileUrlAsync(string fileName)
@@ -70,5 +71,32 @@ public class S3Service(IAmazonS3 s3Client,
         };
 
         await s3Client.DeleteObjectAsync(deleteObjectRequest);
+    }
+
+    public Task<string> UploadFileWithoutBGAsync(IFormFile file)
+    {
+        using var fileStream = file.OpenReadStream();
+        var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+        var fileKey = bucketName + "/" + fileName;
+
+        var fileBytes = new byte[fileStream.Length];
+        fileStream.Read(fileBytes, 0, fileBytes.Length);
+
+        _ = Task.Run(async () =>
+        {
+            var compressedData = await _externalServices.CopressImage(fileBytes);
+            var bytes = _externalServices.RemoveBackground(compressedData);
+
+            var putObjectRequest = new PutObjectRequest
+            {
+                InputStream = new MemoryStream(bytes),
+                BucketName = bucketName,
+                Key = fileName
+            };
+
+            await s3Client.PutObjectAsync(putObjectRequest);
+        });
+
+        return Task.FromResult(fileName);
     }
 }

@@ -6,14 +6,16 @@ namespace BookStore.IdentityService.Services;
 
 public class EmailService
 {
+    private readonly IConfiguration _configuration;
     SmtpClient _smtpClient;
 
-    public EmailService()
+    public EmailService(IConfiguration configuration)
     {
+        _configuration = configuration;
         _smtpClient = new SmtpClient("smtp.gmail.com", 587)
         {
             Port = 587,
-            Credentials = new NetworkCredential("Your email", "Your key"),
+            Credentials = new NetworkCredential("avazbekaolimov@gmail.com", _configuration["GmailKey"]),
             EnableSsl = true,
             UseDefaultCredentials = false
         };
@@ -41,7 +43,7 @@ public class EmailService
                             <h1>Hello {fullname}!</h1>
                             <h2>Confirm your email address</h2>
                             <div style="display: flex; justify-content: center;">
-                                <a href="https://localhost:7281/api/auth/confirm-email/{email}"
+                                <a href="https://localhost:5003/api/auth/confirm-email/{email}"
                                    style="font-size: 22px; padding: 10px 15px; border-radius: 5px;
                                           background-color: rgb(9, 146, 59); color: white;
                                           margin: 10px; text-decoration: none;

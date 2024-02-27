@@ -7,8 +7,8 @@ public static class LoggerBot
 {
     public static async void Log(string message, LogType logType)
     {
-        var botClient = new TelegramBotClient("Your token");
-        var chatId = -100;//channelId;
+        var botClient = new TelegramBotClient("6595345855:AAHiQfCrL_yVy0yrovqTrpS71TI9iR45MqA");
+        var chatId = -1001917771086;
         var smile = logType switch
         {
             LogType.Info => "✅",

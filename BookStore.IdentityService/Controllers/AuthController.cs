@@ -109,7 +109,7 @@ public class AuthController(IUserService userService)
         }
     }
 
-    [HttpPost("update-profile")]
+    [HttpPut("update-profile")]
     [Authorize] 
     public async Task<IActionResult> UpdateProfile(UpdateProfileDto dto)
     {
@@ -129,7 +129,7 @@ public class AuthController(IUserService userService)
         }
     }
 
-    [HttpPost("change-email")]
+    [HttpPatch("change-email")]
     [Authorize]
     public async Task<IActionResult> ChangeEmail(string email, string newEmail)
     {

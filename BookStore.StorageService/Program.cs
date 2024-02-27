@@ -15,6 +15,7 @@ var awsCredentials = new BasicAWSCredentials(accessKey, secretKey);
 builder.Services.AddSingleton<IAmazonS3>(new AmazonS3Client(awsCredentials, Amazon.RegionEndpoint.EUNorth1));
 
 builder.Services.AddScoped<IS3Interface, S3Service>();
+builder.Services.AddScoped<ExternalServices>(); 
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

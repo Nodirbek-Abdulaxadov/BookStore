@@ -25,6 +25,21 @@ public class ImagesController(IS3Interface s3Interface)
         }
     }
 
+    [HttpPost("remove-bg")]
+    public async Task<IActionResult> UploadImageWithoutBGAsync(IFormFile file)
+    {
+        try
+        {
+            var fileKey = await s3Interface.UploadFileWithoutBGAsync(file);
+            string url = $"{Request.Scheme}://{Request.Host}{Request.PathBase}/api/Images/{fileKey}";
+            return Ok(url);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
     [HttpGet("{fileName}")]
     public async Task<IActionResult> GetImageAsync(string fileName)
     {
