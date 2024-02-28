@@ -4,6 +4,7 @@ using StackExchange.Redis;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+string corsPolicy = "AllowAll";
 
 builder.Services.AddControllers();
 builder.Services.AddTransient<ICategoryInterface, CategoryRepository>();
@@ -23,10 +24,22 @@ builder.Services.AddStackExchangeRedisCache(setupAction =>
     setupAction.Configuration = builder.Configuration.GetConnectionString("Redis");
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: corsPolicy,
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+});
+
 var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+app.UseCors(corsPolicy);
 
 app.UseHttpsRedirection();
 

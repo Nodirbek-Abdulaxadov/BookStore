@@ -1,0 +1,99 @@
+﻿@page "/categories"
+
+<MudTable Items="@categories" Dense="true" Hover="true" Bordered="true" Striped="true" Filter="new Func<Category, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Categories Table</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        <MudSpacer />
+        <MudButton @onclick="OpenAddPage" StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Success" Size="Size.Medium">Add</MudButton>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Id</MudTh>
+        <MudTh>Name</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Id">@context.Id</MudTd>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudIconButton @onclick="() => OpenEditPage(context.Id)" Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" />
+            <MudIconButton @onclick="() => Delete(context.Id)" Icon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error" Size="Size.Medium" />
+        </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+
+@code {
+    @inject HttpClient httpClient
+    @inject NavigationManager navigation
+    @inject ISnackbar Snackbar
+    @inject IDialogService DialogService
+
+    private string searchString1 = "";
+    private Category selectedItem1 = new();
+    private List<Category> categories = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await httpClient.GetAsync(Constants.BASE_URL + "categories");
+        if (response.IsSuccessStatusCode)
+        {
+            categories = await response.Content.ReadFromJsonAsync<List<Category>>();
+        }
+    }
+
+    private bool FilterFunc1(Category element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(Category element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+    private void OpenAddPage()
+    {
+        navigation.NavigateTo("/categories/add");
+    }
+
+    private void OpenEditPage(string id)
+    {
+        navigation.NavigateTo($"/categories/edit/{id}");
+    }
+
+    private async void Delete(string id)
+    {
+        var parameters = new DialogParameters<YesNo>();
+        parameters.Add(x => x.ContentText, "Are you sure delete this?");
+        parameters.Add(x => x.ButtonText, "Yes");
+        parameters.Add(x => x.Color, Color.Error);
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialogResult = await DialogService.Show<YesNo>("Delete", parameters, options).Result!;
+        if (!dialogResult.Cancelled)
+        {
+            var response = await httpClient.DeleteAsync(Constants.BASE_URL + "categories/" + id);
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Category deleted successfully!", Severity.Success);
+                categories.RemoveAll(x => x.Id == id);
+                StateHasChanged();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                Snackbar.Add("Category not found!", Severity.Error);
+                navigation.NavigateTo("/categories");
+            }
+            else
+            {
+                Snackbar.Add("Something went wrong!", Severity.Error);
+            }
+        }
+    }
+}

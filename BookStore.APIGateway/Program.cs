@@ -15,6 +15,16 @@ new WebHostBuilder()
             })
             .ConfigureServices(s => {
                 s.AddOcelot();
+                s.AddCors(options =>
+                {
+                    options.AddPolicy("AllowAll",
+                                               builder =>
+                                               {
+                            builder.AllowAnyOrigin()
+                                   .AllowAnyHeader()
+                                   .AllowAnyMethod();
+                        });
+                });
             })
             .ConfigureLogging((hostingContext, logging) =>
             {
@@ -23,6 +33,7 @@ new WebHostBuilder()
             .UseIISIntegration()
             .Configure(app =>
             {
+                app.UseCors("AllowAll");
                 app.UseOcelot().Wait();
             })
             .Build()
