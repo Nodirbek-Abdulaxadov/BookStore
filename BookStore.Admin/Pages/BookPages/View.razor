@@ -1,0 +1,57 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="6">
+                <MudText>Title: @book.Title</MudText>
+                    <br />
+                    <MudText>Author: @book.Author</MudText>
+                    <br/>
+                    <MudText>Price: @book.Price</MudText>
+                    <br/>
+                    <MudText>Language: @book.Language</MudText>
+                    <br/>
+                    <MudText>Barcode: @book.Barcode</MudText>
+                    <br/>
+                    <MudText>Pages: @book.Pages</MudText>
+                    <br/>
+                    <MudText>Published: @book.Year</MudText>
+                    <br/>
+            </MudItem>
+            <MudItem xs="6">
+                    <MudImage ObjectFit="ObjectFit.Contain" 
+                              Src="@book.ImageUrl" 
+                              Alt="book image" 
+                              Elevation="25" 
+                              Class="rounded-lg"
+                              Width="300"
+                              Height="300"/>
+            </MudItem>
+        </MudGrid>
+
+        <MudSpacer/>
+            <MudText Typo="Typo.subtitle1" Class="my-5">
+                <MudTextField ReadOnly="true" @bind-Value="book.Description" Lines="5" Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-4"></MudTextField>
+        </MudText>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] 
+    MudDialogInstance MudDialog { get; set; }
+
+    @inject HttpClient httpClient
+
+    Book book = new Book();
+
+    [Parameter] 
+    public string Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await httpClient.GetAsync(Constants.BASE_URL + $"books/{Id}");
+        if (response.IsSuccessStatusCode)
+        {
+            book = await response.Content.ReadFromJsonAsync<Book>();
+        }
+    }
+}

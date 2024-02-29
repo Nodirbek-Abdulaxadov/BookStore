@@ -1,0 +1,194 @@
+﻿@page "/books/add"
+
+<MudGrid>
+    <MudItem xs="2"></MudItem>
+    <MudItem xs="8">
+        <MudCard Class="mt-4">
+            <MudCardHeader Class="d-flex justify-center"> <h3>Add new Book</h3> </MudCardHeader>
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="6">
+                        <MudTextField @bind-Value="book.Title" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-4"></MudTextField>
+                        <MudTextField @bind-Value="book.Author" Label="Author" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-4"></MudTextField>
+                        <MudTextField @bind-Value="book.Price" Label="Price" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-4"></MudTextField>
+                        <MudTextField @bind-Value="book.Language" Label="Language" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-4"></MudTextField>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField @bind-Value="book.Barcode" Label="Barcode" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-4"></MudTextField>
+                        <MudTextField @bind-Value="book.Pages" Label="Pages" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-4"></MudTextField>
+                        <MudTextField @bind-Value="book.Year" Label="Published Year" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-4"></MudTextField>
+                        <MudTextField @bind-Value="book.Publisher" Label="Publisher" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-4"></MudTextField>
+                    </MudItem>
+                </MudGrid>
+                <MudSelect T="string" Label="Select Categories" MultiSelection="true" @bind-SelectedValues="selectedCategories">
+                    @foreach (var category in categories)
+                    {
+                        <MudSelectItem T="string" Value="@category.Name">@category.Name</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudTextField @bind-Value="book.Description" Lines="5" Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-4"></MudTextField>
+                <MudItem>
+                    <MudStack Style="width: 100%">
+                        <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                                       OnFilesChanged="OnInputFileChanged"
+                                       Hidden="@false"
+                                       InputClass="absolute mud-width-full mud-height-full overflow-hidden z-20"
+                                       InputStyle="opacity:0"
+                                       @ondragenter="@SetDragClass"
+                                       @ondragleave="@ClearDragClass"
+                                       @ondragend="@ClearDragClass">
+                            <ButtonTemplate>
+                                <MudPaper Height="150px"
+                                          Outlined="true"
+                                          Class="@_dragClass">
+                                    <MudText Typo="Typo.h6">
+                                        Drag and drop files here or click
+                                    </MudText>
+                                    @if (!string.IsNullOrEmpty(_fileName))
+                                    {
+                                        <MudChip Color="Color.Dark" Text="@_fileName" />
+                                    }
+                                </MudPaper>
+                                <MudToolBar DisableGutters="true"
+                                            Class="relative d-flex justify-end gap-4 z-30">
+                                    <MudCheckBox @bind-Value="@removeBg" Label="Primary" Color="Color.Primary">Remove background</MudCheckBox>
+                                    <MudButton OnClick="@Upload"
+                                               Color="Color.Primary"
+                                               Disabled="@(string.IsNullOrEmpty(_fileName))"
+                                               Variant="Variant.Filled">
+                                        Upload
+                                    </MudButton>
+                                    <MudButton OnClick="@Clear"
+                                               Color="Color.Error"
+                                               Disabled="@(string.IsNullOrEmpty(_fileName))"
+                                               Variant="Variant.Filled">
+                                        Clear
+                                    </MudButton>
+                                </MudToolBar>
+                            </ButtonTemplate>
+                        </MudFileUpload>
+                    </MudStack>
+                </MudItem>
+
+            </MudCardContent>
+            <MudCardActions Class="d-flex justify-center">
+                <MudButton @onclick="Cancel" Variant="Variant.Filled">Cancel</MudButton>
+                <MudButton @onclick="Save" Class="ms-2" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="2"></MudItem>
+</MudGrid>
+
+@code {
+    @inject NavigationManager navigation
+    @inject HttpClient httpClient
+    @inject ISnackbar Snackbar
+    bool removeBg = false;
+    List<Category> categories = new();
+    IEnumerable<string> selectedCategories = new HashSet<string>();
+
+    AddBookDto book = new();
+
+
+    protected async override Task OnInitializedAsync()
+    {
+        var response = await httpClient.GetAsync(Constants.BASE_URL + "categories");
+        if (response.IsSuccessStatusCode)
+        {
+            categories = await response.Content.ReadFromJsonAsync<List<Category>>();
+        }
+        else
+        {
+            Snackbar.Add("Someting went error while loading data!", Severity.Error);
+        }
+    }
+
+    private void Cancel()
+    {
+        navigation.NavigateTo("/books");
+    }
+
+    private async void Save()
+    {
+        book.CategoryIds = selectedCategories.Select(c => categories.FirstOrDefault(i => i.Name == c).Id)
+                                             .ToList();
+
+        var json = JsonSerializer.Serialize(book);
+        var data = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await httpClient.PostAsync(Constants.BASE_URL + "books", data);
+        if (response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("Book added successfully!", Severity.Success);
+            Cancel();
+        }
+        else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            var responseContent = await response.Content.ReadAsStringAsync();
+            Snackbar.Add(responseContent, Severity.Error);
+        }
+        else
+        {
+            Snackbar.Add("Someting went error!", Severity.Error);
+        }
+    }
+
+
+
+
+
+
+
+
+    private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full z-10";
+    private string _dragClass = DefaultDragClass;
+    private string _fileName = string.Empty;
+    private IBrowserFile browserFile;
+
+    private void Clear()
+    {
+        _fileName = "";
+        ClearDragClass();
+        browserFile = null;
+    }
+
+    private void OnInputFileChanged(InputFileChangeEventArgs e)
+    {
+        ClearDragClass();
+        var file = e.GetMultipleFiles(1).FirstOrDefault();
+        _fileName = file.Name;
+        browserFile = file;
+    }
+
+    private async void Upload()
+    {
+        var content = new MultipartFormDataContent();
+        var buffers = new byte[1024 * 30 * 1024];
+        int bytesRead = 0;
+        using var myFile = browserFile.OpenReadStream(maxAllowedSize: 1024 * 30 * 1024);
+        while ((bytesRead = await myFile.ReadAsync(buffers)) != 0)
+        {
+            content.Add(new StreamContent(new MemoryStream(buffers, 0, bytesRead)), "file", browserFile.Name);
+        }
+
+        string url = removeBg ? Constants.BASE_URL + "images/remove-bg" : Constants.BASE_URL + "images";
+        var response = await httpClient.PostAsync(url, content);
+        if (response.IsSuccessStatusCode)
+        {
+            book.ImageUrl = await response.Content.ReadAsStringAsync();
+            Snackbar.Add("Image uploaded successfully!", Severity.Success);
+            Clear();
+        }
+        else
+        {
+            Snackbar.Add("Someting went error!", Severity.Error);
+        }
+    }
+
+    private void SetDragClass()
+        => _dragClass = $"{DefaultDragClass} mud-border-primary";
+
+    private void ClearDragClass()
+        => _dragClass = DefaultDragClass;
+}

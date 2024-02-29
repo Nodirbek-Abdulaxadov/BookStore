@@ -1,4 +1,4 @@
-﻿@page "/categories"
+﻿@page "/books"
 
 @if(Loading)
 {
@@ -14,7 +14,7 @@ else if (error)
 }
 else
 {
-    <MudTable Items="@categories" Dense="true" Hover="true" Bordered="true" Striped="true" Filter="new Func<Category, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
+    <MudTable Items="@categories" Dense="true" Hover="true" Bordered="true" Striped="true" Filter="new Func<Book, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
         <ToolBarContent>
             <MudText Typo="Typo.h6">Categories Table</MudText>
             <MudSpacer />
@@ -23,17 +23,24 @@ else
             <MudButton @onclick="OpenAddPage" StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Success" Size="Size.Medium">Add</MudButton>
         </ToolBarContent>
         <HeaderContent>
-            <MudTh>Id</MudTh>
-            <MudTh>Name</MudTh>
+            <MudTh>Title</MudTh>
+            <MudTh>Author</MudTh>
+            <MudTh>Price</MudTh>
+            <MudTh>Language</MudTh>
+            <MudTh>Barcode</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Id">@context.Id</MudTd>
-                <MudTd DataLabel="Name">@context.Name</MudTd>
-                <MudTd DataLabel="Actions">
-                    <MudIconButton @onclick="() => OpenEditPage(context.Id)" Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" />
-                    <MudIconButton @onclick="() => Delete(context.Id)" Icon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error" Size="Size.Medium" />
-                </MudTd>
+            <MudTd DataLabel="Title">@context.Title</MudTd>
+            <MudTd DataLabel="Author">@context.Author</MudTd>
+            <MudTd DataLabel="Price">@context.Price</MudTd>
+            <MudTd DataLabel="Language">@context.Language</MudTd>
+            <MudTd DataLabel="Barcode">@context.Barcode</MudTd>
+            <MudTd DataLabel="Actions">
+                    <MudIconButton @onclick="() => OpenViewPage(context.Id)" Icon="@Icons.Material.Filled.Visibility" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" />
+                <MudIconButton @onclick="() => OpenEditPage(context.Id)" Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" />
+                <MudIconButton @onclick="() => Delete(context.Id)" Icon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error" Size="Size.Medium" />
+            </MudTd>
             </RowTemplate>
             <PagerContent>
                 <MudTablePager />
@@ -50,15 +57,15 @@ else
     bool Loading = true;
     bool error = false;
     private string searchString1 = "";
-    private Category selectedItem1 = new();
-    private List<Category> categories = new();
+    private Book selectedItem1 = new();
+    private List<Book> categories = new();
 
     protected override async Task OnInitializedAsync()
     {
-        var response = await httpClient.GetAsync(Constants.BASE_URL + "categories");
+        var response = await httpClient.GetAsync(Constants.BASE_URL + "books");
         if (response.IsSuccessStatusCode)
         {
-            categories = await response.Content.ReadFromJsonAsync<List<Category>>();
+            categories = await response.Content.ReadFromJsonAsync<List<Book>>();
             Loading = false;
         }
         else
@@ -68,25 +75,34 @@ else
         }
     }
 
-    private bool FilterFunc1(Category element) => FilterFunc(element, searchString1);
+    private bool FilterFunc1(Book element) => FilterFunc(element, searchString1);
 
-    private bool FilterFunc(Category element, string searchString)
+    private bool FilterFunc(Book element, string searchString)
     {
         if (string.IsNullOrWhiteSpace(searchString))
             return true;
-        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (element.Title.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
         return false;
     }
 
     private void OpenAddPage()
     {
-        navigation.NavigateTo("/categories/add");
+        navigation.NavigateTo("/books/add");
     }
 
     private void OpenEditPage(string id)
     {
-        navigation.NavigateTo($"/categories/edit/{id}");
+        navigation.NavigateTo($"/books/edit/{id}");
+    }
+
+    private void OpenViewPage(string id)
+    {
+        var parameters = new DialogParameters<View>();
+        parameters.Add(x => x.Id, id);
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        DialogService.Show<View>("View", parameters, options);
     }
 
     private async void Delete(string id)
@@ -101,17 +117,17 @@ else
         var dialogResult = await DialogService.Show<YesNo>("Delete", parameters, options).Result!;
         if (!dialogResult.Cancelled)
         {
-            var response = await httpClient.DeleteAsync(Constants.BASE_URL + "categories/" + id);
+            var response = await httpClient.DeleteAsync(Constants.BASE_URL + "books/" + id);
             if (response.IsSuccessStatusCode)
             {
-                Snackbar.Add("Category deleted successfully!", Severity.Success);
+                Snackbar.Add("Book deleted successfully!", Severity.Success);
                 categories.RemoveAll(x => x.Id == id);
                 StateHasChanged();
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
-                Snackbar.Add("Category not found!", Severity.Error);
-                navigation.NavigateTo("/categories");
+                Snackbar.Add("Book not found!", Severity.Error);
+                navigation.NavigateTo("/books");
             }
             else
             {

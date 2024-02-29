@@ -20,21 +20,28 @@ public class CategoriesController(ICategoryInterface categoryInterface,
     [HttpGet]
     public async Task<IActionResult> GetCategories()
     {
-        var cachedData = await _cache.GetStringAsync(_cacheKey);
-        if (cachedData != null)
+        try
         {
-            return Ok(cachedData);
+            var cachedData = await _cache.GetStringAsync(_cacheKey);
+            if (cachedData != null)
+            {
+                return Ok(cachedData);
+            }
+
+            var categories = await _categories.GetCategories();
+            if (categories.Any())
+            {
+                await _cache.SetStringAsync(_cacheKey, Json.Serialize(categories));
+            }
+
+            var json = Json.Serialize(categories);
+
+            return Ok(json);
         }
-
-        var categories = await _categories.GetCategories();
-        if (categories.Any())
-        { 
-            await _cache.SetStringAsync(_cacheKey, Json.Serialize(categories));
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
         }
-
-        var json = Json.Serialize(categories);
-
-        return Ok(json);
     }
 
     [HttpGet("with-books")]
