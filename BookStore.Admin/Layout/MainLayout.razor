@@ -19,3 +19,16 @@
         </article>
     </main>
 </div>
+
+@code {
+    @inject ILocalStorageService localStorageService;
+    @inject NavigationManager navigationManager;
+    protected override async Task OnInitializedAsync()
+    {
+        var isAuthenticated = await CustomAuthorize.IsAuthorizedAsync(localStorageService);
+        if (!isAuthenticated)
+        {
+            navigationManager.NavigateTo("/login", forceLoad: true);
+        }
+    }
+}

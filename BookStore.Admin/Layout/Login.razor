@@ -1,0 +1,60 @@
+﻿@page "/login"
+@inject HttpClient Http
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ILocalStorageService LocalStorage
+@inject IConfiguration Configuration
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@layout EmptyLayout
+
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+
+<MudGrid Class="d-flex justify-center mt-5" >
+    <MudItem xs="12" sm="5">
+        <MudPaper Class="pa-4">
+
+            <MudText Typo="Typo.h4" Class="mt-3 mb-3 text-center">Login</MudText>
+
+            <MudForm @bind-IsValid="@success" @bind-Errors="@errors">
+                <MudTextField T="string" Label="Email" @bind-Value="login.Email" Required="true" RequiredError="Email is required!"
+                              Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" />
+                <MudTextField T="string" Label="Password"
+                              InputType="InputType.Password"
+                              Required="true" @bind-Value="login.Password"
+                              RequiredError="Password is required!" />
+            </MudForm>
+            <div class="d-flex justify-content-center">
+                <MudButton Class="mt-5" Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="LoginUser">Login</MudButton>
+            </div>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    bool success;
+    string[] errors = { };
+
+    LoginUserDto login = new();
+
+    private async Task LoginUser()
+    {
+        var json = JsonSerializer.Serialize(login);
+        var data = new StringContent(json, Encoding.UTF8, "application/json");
+        var response = await Http.PostAsync(Constants.BASE_URL + "auth/login", data);
+        if (response.IsSuccessStatusCode)
+{
+            var content = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<LoginResult>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            await LocalStorage.SetItemAsync("authToken", result.Token);
+            await LocalStorage.SetItemAsync("data", JsonSerializer.Serialize(result));
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            Snackbar.Add(content, Severity.Error);
+        }
+        
+    }
+}

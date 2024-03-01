@@ -1,4 +1,5 @@
 ﻿@page "/categories"
+@layout MainLayout
 
 @if(Loading)
 {
@@ -46,6 +47,7 @@ else
     @inject NavigationManager navigation
     @inject ISnackbar Snackbar
     @inject IDialogService DialogService
+    @inject ILocalStorageService localStorage
 
     bool Loading = true;
     bool error = false;
@@ -55,6 +57,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        var token = await CustomAuthorize.GetTokenAsync(localStorage);
+        httpClient.DefaultRequestHeaders.Authorization = new("Bearer", token);
         var response = await httpClient.GetAsync(Constants.BASE_URL + "categories");
         if (response.IsSuccessStatusCode)
         {

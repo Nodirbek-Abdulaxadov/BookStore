@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BookStore.IdentityService",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BookStore.APIGateway", "BookStore.APIGateway\BookStore.APIGateway.csproj", "{C356FCED-E6F0-4B42-98BD-26516FCFEC64}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.Admin", "BookStore.Admin\BookStore.Admin.csproj", "{AC5BFCC2-76B4-4902-8C88-461A33306D53}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BookStore.Admin", "BookStore.Admin\BookStore.Admin.csproj", "{AC5BFCC2-76B4-4902-8C88-461A33306D53}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

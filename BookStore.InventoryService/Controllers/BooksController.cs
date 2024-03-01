@@ -25,7 +25,7 @@ public class BooksController(IBookInterface books,
         {
             return Ok(cachedData);
         }
-
+        var categories = await _categories.GetCategories();
         var books = await _books.GetBooks();
 
         var list = books.Select(_mapper.MapToBookDto);
@@ -48,7 +48,9 @@ public class BooksController(IBookInterface books,
             return NotFound();
         }
 
-        return Ok(book);
+        var bookDto = _mapper.MapToBookDto(book);
+
+        return Ok(bookDto);
     }
 
     [HttpPost]

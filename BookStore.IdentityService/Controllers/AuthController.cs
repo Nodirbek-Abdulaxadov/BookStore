@@ -216,4 +216,11 @@ public class AuthController(IUserService userService)
             return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
         }
     }
+
+    [HttpGet("check-auth")]
+    [Authorize]
+    public IActionResult CheckAuth()
+    {
+        return Ok();
+    }
 }
