@@ -129,6 +129,10 @@
             selectedCategories = excitingBook.Categories.Select(c => c.Name);
             StateHasChanged();
         }
+        else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            navigation.NavigateTo("/login");
+        }
         else
         {
             Snackbar.Add("Someting went error while loading data!", Severity.Error);
@@ -165,6 +169,10 @@
         {
             Snackbar.Add("Book updated successfully!", Severity.Success);
             Cancel();
+        }
+        else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            navigation.NavigateTo("/login");
         }
         else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
         {

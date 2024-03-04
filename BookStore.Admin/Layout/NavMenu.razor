@@ -5,28 +5,52 @@
             <span class="navbar-toggler-icon"></span>
         </button>
     </div>
+
 </div>
 
 <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
     <nav class="flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                <div class="f-link d-flex justify-content-start" style="align-items: center">
+                    <span class="icon"><i class="bi bi-graph-up-arrow"></i></span>
+                    <span>Home</span>
+                </div>
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="categories">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Categories
+                <div class="f-link d-flex justify-content-start" style="align-items: center">
+                    <span class="icon"><i class="bi bi-list-task"></i></span>
+                    <span>Categories</span>
+                </div>
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="books">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Books
+                <div class="f-link d-flex justify-content-start" style="align-items: center">
+                    <span class="icon"><i class="bi bi-book"></i></span>
+                    <span>Books</span>
+                </div>
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="login">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Login
+        @if (IsSuperAdmin)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="admins">
+                    <div class="f-link d-flex justify-content-start" style="align-items: center">
+                        <span class="icon"><i class="bi bi-person-square"></i></span>
+                        <span>Admins</span>
+                    </div>
+                </NavLink>
+            </div>
+        }
+        <div class="nav-item px-3 mt-2">
+            <NavLink class="nav-link" href="logout">
+                <div class="f-link d-flex justify-content-start" style="align-items: center">
+                    <span class="icon"><i class="bi bi-box-arrow-left" aria-hidden="true"></i></span>
+                    <span>Logout</span>
+                </div>
             </NavLink>
         </div>
     </nav>
@@ -34,8 +58,17 @@
 
 @code {
     private bool collapseNavMenu = true;
+    @inject ILocalStorageService localStorage
+    bool IsSuperAdmin = false;
 
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    protected async override Task OnInitializedAsync()
+    {
+        var roles = await CustomAuthorize.GetRolesAsync(localStorage);
+        IsSuperAdmin = roles.Any(r => r == "SuperAdmin");
+        StateHasChanged();
+    }
 
     private void ToggleNavMenu()
     {

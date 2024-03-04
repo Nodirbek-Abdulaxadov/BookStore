@@ -233,6 +233,18 @@
         }
       ]
     },
+    {
+      "UpstreamPathTemplate": "/gateway/auth/check-auth",
+      "UpstreamHttpMethod": [ "get" ],
+      "DownstreamPathTemplate": "/api/auth/check-auth",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5003
+        }
+      ]
+    },
 
     {
       "UpstreamPathTemplate": "/gateway/admin/get-admins",

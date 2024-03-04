@@ -1,12 +1,21 @@
-﻿@page "/categories/add"
+﻿@page "/admins/add"
 
 <MudGrid>
     <MudItem xs="3"></MudItem>
     <MudItem xs="6">
         <MudCard Class="mt-4">
-            <MudCardHeader Class="d-flex justify-center"> <h3>Add new Category</h3> </MudCardHeader>
+            <MudCardHeader Class="d-flex justify-center"> <h3>Add new Admin</h3> </MudCardHeader>
             <MudCardContent>
-                <MudTextField @bind-Value="categoryName" Label="Name" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
+                <MudTextField @bind-Value="user.FullName" Label="Full Name" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
+            </MudCardContent>
+            <MudCardContent>
+                <MudTextField @bind-Value="user.Email" Label="Email" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
+            </MudCardContent>
+            <MudCardContent>
+                <MudTextField @bind-Value="user.Address" Label="Address" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
+            </MudCardContent>
+            <MudCardContent>
+                <MudTextField @bind-Value="user.Password" Label="Password" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
             </MudCardContent>
             <MudCardActions Class="d-flex justify-center">
                 <MudButton @onclick="Cancel" Variant="Variant.Filled">Cancel</MudButton>
@@ -22,22 +31,30 @@
     string categoryName { get; set; } = "";
     @inject HttpClient httpClient
     @inject ISnackbar Snackbar
+    @inject ILocalStorageService localStorage
+
+    RegisterUser user = new();
 
     private void Cancel()
     {
-        navigation.NavigateTo("/categories");
+        navigation.NavigateTo("/admins");
     }
 
     private async void Save()
     {
-        var model = new { name = categoryName };
-        var json = JsonSerializer.Serialize(model);
+        var token = await CustomAuthorize.GetTokenAsync(localStorage);
+        if (string.IsNullOrEmpty(token))
+        {
+            navigation.NavigateTo("/login");
+        }
+
+        var json = JsonSerializer.Serialize(user);
         var data = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await httpClient.PostAsync(Constants.BASE_URL + "categories", data);
+        var response = await httpClient.PostAsync(Constants.BASE_URL + "admin/create-admin", data);
         if (response.IsSuccessStatusCode)
         {
-            Snackbar.Add("Category added successfully!", Severity.Success);
+            Snackbar.Add("Admin added successfully!", Severity.Success);
             Cancel();
         }
         else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)

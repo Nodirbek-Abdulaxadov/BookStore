@@ -40,6 +40,7 @@
     MudDialogInstance MudDialog { get; set; }
 
     @inject HttpClient httpClient
+    @inject NavigationManager navigation
 
     Book book = new Book();
 
@@ -52,6 +53,10 @@
         if (response.IsSuccessStatusCode)
         {
             book = await response.Content.ReadFromJsonAsync<Book>();
+        }
+        else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            navigation.NavigateTo("/login");
         }
     }
 }

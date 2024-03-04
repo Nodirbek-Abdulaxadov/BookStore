@@ -33,6 +33,10 @@
         {
             category = await response.Content.ReadFromJsonAsync<Category>();
         }
+        else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            navigation.NavigateTo("/login");
+        }
         else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
             Snackbar.Add("Category not found!", Severity.Error);
@@ -56,6 +60,10 @@
         {
             Snackbar.Add("Category updated successfully!", Severity.Success);
             Cancel();
+        }
+        else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            navigation.NavigateTo("/login");
         }
         else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
         {

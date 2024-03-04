@@ -10,13 +10,13 @@ namespace BookStore.IdentityService.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Roles = UserRoles.SUPER_ADMIN)]
 public class AdminController(IUserService userService)
     : ControllerBase
 {
     private readonly IUserService _userService = userService;
 
     [HttpGet("users")]
+    [Authorize(Roles = $"{UserRoles.SUPER_ADMIN}, {UserRoles.ADMIN}")]
     public async Task<IActionResult> GetUsersAsync()
     {
         var users = await _userService.GetUsersAsync(UserRoles.USER);
@@ -24,6 +24,7 @@ public class AdminController(IUserService userService)
     }
 
     [HttpGet("users/{id}")]
+    [Authorize(Roles = $"{UserRoles.SUPER_ADMIN}, {UserRoles.ADMIN}")]
     public async Task<IActionResult> GetUserAsync(string id)
     {
         var users = await _userService.GetUserByIdAsync(id);
@@ -31,6 +32,7 @@ public class AdminController(IUserService userService)
     }
 
     [HttpGet("admins")]
+    [Authorize(Roles = $"{UserRoles.SUPER_ADMIN}")]
     public async Task<IActionResult> GetAdminsAsync()
     {
         var users = await _userService.GetUsersAsync(UserRoles.ADMIN);
@@ -38,6 +40,7 @@ public class AdminController(IUserService userService)
     }
 
     [HttpPost("create-admin")]
+    [Authorize(Roles = $"{UserRoles.SUPER_ADMIN}")]
     public async Task<IActionResult> CreateAdminAsync(RegisterUserDto dto)
     {
         try
@@ -57,6 +60,7 @@ public class AdminController(IUserService userService)
     }
 
     [HttpDelete("delete-admin")]
+    [Authorize(Roles = $"{UserRoles.SUPER_ADMIN}")]
     public async Task<IActionResult> DeleteAdminAsync(string email)
     {
         try

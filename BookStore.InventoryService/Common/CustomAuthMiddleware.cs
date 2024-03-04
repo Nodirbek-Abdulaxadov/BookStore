@@ -16,10 +16,19 @@ public class CustomAuthMiddleware
 	{
 		if (context.Request.Headers.ContainsKey("Authorization"))
 		{
-			var token = context.Request.Headers["Authorization"].ToString().Split(" ")[1];
+			string token = string.Empty;
+			try
+			{
+                token = context.Request.Headers["Authorization"].ToString().Split(" ")[1];
+            }
+			catch (Exception)
+			{
+                context.Response.StatusCode = 401;
+                await context.Response.WriteAsync("Unauthorized");
+            }
 			var httpClient = new HttpClient();
 			httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-			var response = await httpClient.GetAsync("http://localhost:5003/api/auth/check-auth");
+			var response = await httpClient.GetAsync("https://localhost:5001/gateway/auth/check-auth");
 			if (response.StatusCode == HttpStatusCode.OK)
 			{
 				await _next(context);

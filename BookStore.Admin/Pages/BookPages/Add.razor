@@ -98,6 +98,10 @@
         {
             categories = await response.Content.ReadFromJsonAsync<List<Category>>();
         }
+        else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            navigation.NavigateTo("/login");
+        }
         else
         {
             Snackbar.Add("Someting went error while loading data!", Severity.Error);
@@ -122,6 +126,10 @@
         {
             Snackbar.Add("Book added successfully!", Severity.Success);
             Cancel();
+        }
+        else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            navigation.NavigateTo("/login");
         }
         else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
         {

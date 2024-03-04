@@ -1,0 +1,15 @@
+﻿@page "/logout"
+
+@code {
+
+    @inject ILocalStorageService localStorage
+    @inject NavigationManager navigation
+
+    protected override async Task OnInitializedAsync()
+    {
+        await localStorage.RemoveItemAsync("token");
+        await localStorage.RemoveItemAsync("data");
+        navigation.NavigateTo("/login");
+    }
+
+}

@@ -65,6 +65,10 @@ else
             categories = await response.Content.ReadFromJsonAsync<List<Category>>();
             Loading = false;
         }
+        else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            navigation.NavigateTo("/login");
+        }
         else
         {
             error = true;
@@ -111,6 +115,10 @@ else
                 Snackbar.Add("Category deleted successfully!", Severity.Success);
                 categories.RemoveAll(x => x.Id == id);
                 StateHasChanged();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                navigation.NavigateTo("/login");
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {

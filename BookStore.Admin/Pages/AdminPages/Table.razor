@@ -1,6 +1,7 @@
-﻿@page "/books"
+﻿@page "/admins"
+@layout MainLayout
 
-@if(Loading)
+@if (Loading)
 {
     <div class="d-flex justify-content-center mt-5">
         <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
@@ -14,7 +15,7 @@ else if (error)
 }
 else
 {
-    <MudTable Items="@categories" Dense="true" Hover="true" Bordered="true" Striped="true" Filter="new Func<Book, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
+    <MudTable Items="@admins" Dense="true" Hover="true" Bordered="true" Striped="true" Filter="new Func<UserDto, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
         <ToolBarContent>
             <MudText Typo="Typo.h6">Categories Table</MudText>
             <MudSpacer />
@@ -23,21 +24,18 @@ else
             <MudButton @onclick="OpenAddPage" StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Success" Size="Size.Medium">Add</MudButton>
         </ToolBarContent>
         <HeaderContent>
-            <MudTh>Title</MudTh>
-            <MudTh>Author</MudTh>
-            <MudTh>Price</MudTh>
-            <MudTh>Language</MudTh>
-            <MudTh>Barcode</MudTh>
+            <MudTh>FullName</MudTh>
+            <MudTh>Email</MudTh>
+            <MudTh>Address</MudTh>
+            <MudTh>EmailConfirmed</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Title">@context.Title</MudTd>
-            <MudTd DataLabel="Author">@context.Author</MudTd>
-            <MudTd DataLabel="Price">@context.Price</MudTd>
-            <MudTd DataLabel="Language">@context.Language</MudTd>
-            <MudTd DataLabel="Barcode">@context.Barcode</MudTd>
+            <MudTd DataLabel="Name">@context.FullName</MudTd>
+            <MudTd DataLabel="Name">@context.Email</MudTd>
+            <MudTd DataLabel="Name">@context.Address</MudTd>
+            <MudTd DataLabel="Name">@context.EmailConfirmed</MudTd>
             <MudTd DataLabel="Actions">
-                    <MudIconButton @onclick="() => OpenViewPage(context.Id)" Icon="@Icons.Material.Filled.Visibility" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" />
                 <MudIconButton @onclick="() => OpenEditPage(context.Id)" Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" />
                 <MudIconButton @onclick="() => Delete(context.Id)" Icon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Error" Size="Size.Medium" />
             </MudTd>
@@ -49,25 +47,46 @@ else
 }
 
 @code {
-@inject HttpClient httpClient
+    @inject HttpClient httpClient
     @inject NavigationManager navigation
     @inject ISnackbar Snackbar
     @inject IDialogService DialogService
+    @inject ILocalStorageService localStorage
 
     bool Loading = true;
     bool error = false;
     private string searchString1 = "";
-    private Book selectedItem1 = new();
-    private List<Book> categories = new();
+    private UserDto selectedItem1 = new();
+    private List<UserDto> admins = new();
 
     protected override async Task OnInitializedAsync()
     {
-        var response = await httpClient.GetAsync(Constants.BASE_URL + "books");
+        var token = await CustomAuthorize.GetTokenAsync(localStorage);
+        if (string.IsNullOrEmpty(token))
+        {
+            navigation.NavigateTo("/login");
+        }
+
+        var roles = await CustomAuthorize.GetRolesAsync(localStorage);
+        if (!roles.Contains("SuperAdmin"))
+        {
+            Snackbar.Add("You don't have permission to access this page!", Severity.Error);
+            navigation.NavigateTo("/");
+        }
+
+        httpClient.DefaultRequestHeaders.Authorization = new("Bearer", token);
+        var response = await httpClient.GetAsync(Constants.BASE_URL + "admin/get-admins");
         if (response.IsSuccessStatusCode)
         {
-            categories = await response.Content.ReadFromJsonAsync<List<Book>>();
+            admins = await response.Content.ReadFromJsonAsync<List<UserDto>>();
             Loading = false;
         }
+        else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        {
+            Snackbar.Add("You don't have permission to access this page!", Severity.Error);
+            navigation.NavigateTo("/");            
+        }
+
         else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
         {
             navigation.NavigateTo("/login");
@@ -79,34 +98,25 @@ else
         }
     }
 
-    private bool FilterFunc1(Book element) => FilterFunc(element, searchString1);
+    private bool FilterFunc1(UserDto element) => FilterFunc(element, searchString1);
 
-    private bool FilterFunc(Book element, string searchString)
+    private bool FilterFunc(UserDto element, string searchString)
     {
         if (string.IsNullOrWhiteSpace(searchString))
             return true;
-        if (element.Title.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (element.FullName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
         return false;
     }
 
     private void OpenAddPage()
     {
-        navigation.NavigateTo("/books/add");
+        navigation.NavigateTo("/admins/add");
     }
 
     private void OpenEditPage(string id)
     {
-        navigation.NavigateTo($"/books/edit/{id}");
-    }
-
-    private void OpenViewPage(string id)
-    {
-        var parameters = new DialogParameters<View>();
-        parameters.Add(x => x.Id, id);
-        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
-
-        DialogService.Show<View>("View", parameters, options);
+        navigation.NavigateTo($"/admins/edit/{id}");
     }
 
     private async void Delete(string id)
@@ -121,17 +131,21 @@ else
         var dialogResult = await DialogService.Show<YesNo>("Delete", parameters, options).Result!;
         if (!dialogResult.Cancelled)
         {
-            var response = await httpClient.DeleteAsync(Constants.BASE_URL + "books/" + id);
+            var response = await httpClient.DeleteAsync(Constants.BASE_URL + "admin/delete-admin/" + id);
             if (response.IsSuccessStatusCode)
             {
-                Snackbar.Add("Book deleted successfully!", Severity.Success);
-                categories.RemoveAll(x => x.Id == id);
+                Snackbar.Add("Admin deleted successfully!", Severity.Success);
+                admins.RemoveAll(x => x.Id == id);
                 StateHasChanged();
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                navigation.NavigateTo("/login");
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
-                Snackbar.Add("Book not found!", Severity.Error);
-                navigation.NavigateTo("/books");
+                Snackbar.Add("Admin not found!", Severity.Error);
+                navigation.NavigateTo("/admins");
             }
             else
             {

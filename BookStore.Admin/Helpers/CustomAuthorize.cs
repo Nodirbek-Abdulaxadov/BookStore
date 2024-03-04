@@ -17,7 +17,7 @@ public class CustomAuthorize
         return await localStorage.GetItemAsync<string>("authToken");
     }
 
-    public static async Task<List<string>> GetRoles(ILocalStorageService localStorage)
+    public static async Task<List<string>> GetRolesAsync(ILocalStorageService localStorage)
     {
         var data = await localStorage.GetItemAsync<string>("data");
         if (string.IsNullOrEmpty(data))
