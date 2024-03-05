@@ -37,13 +37,13 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.UseMiddleware<CustomAuthMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseCors(corsPolicy);
 
 app.UseHttpsRedirection();
 
+app.UseMiddleware<CustomAuthMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

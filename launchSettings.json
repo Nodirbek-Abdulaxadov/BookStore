@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "serviceActions": {
+        "bookstore.storageservice": "StartDebugging",
+        "bookstore.inventoryservice": "StartDebugging",
+        "bookstore.identityservice": "StartDebugging",
+        "bookstore.apigateway": "StartDebugging"
+      }
+    }
+  }
+}

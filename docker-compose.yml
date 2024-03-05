@@ -1,0 +1,65 @@
+version: '3.4'
+
+services:
+  bookstore.storageservice:
+    image: ${DOCKER_REGISTRY-}bookstorestorageservice
+    build:
+      context: .
+      dockerfile: BookStore.StorageService/Dockerfile
+    ports:
+      - "6000:6000"
+      - "6001:6001"
+
+  bookstore.inventoryservice:
+    image: ${DOCKER_REGISTRY-}bookstoreinventoryservice
+    build:
+      context: .
+      dockerfile: BookStore.InventoryService/Dockerfile
+    ports:
+      - "6002:6002"
+      - "6003:6003"
+
+
+  bookstore.identityservice:
+    image: ${DOCKER_REGISTRY-}bookstoreidentityservice
+    build:
+      context: .
+      dockerfile: BookStore.IdentityService/Dockerfile
+    ports:
+      - "6004:6004"
+      - "6005:6005"
+
+
+  bookstore.apigateway:
+    image: ${DOCKER_REGISTRY-}bookstoreapigateway
+    build:
+      context: .
+      dockerfile: BookStore.APIGateway/Dockerfile
+    ports:
+      - "6006:6006"
+      - "6007:6007"
+
+  bookstore.mongodb:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - /data/db:/data/db
+
+  bookstore.postgres:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    volumes:
+      - /var/lib/postgresql/data:/var/lib/postgresql/data
+
+  bookstore.redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - /data/redis:/data/redis
+

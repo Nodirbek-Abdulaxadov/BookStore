@@ -1,5 +1,7 @@
-﻿using BookStore.IdentityService.Data.Entities;
+﻿using BookStore.IdentityService.Data;
+using BookStore.IdentityService.Data.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookStore.IdentityService;
 
@@ -10,6 +12,9 @@ public static class Startup
         using var scope = builder.ApplicationServices.CreateScope();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<UserRole>>();
          
+        var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+        dbContext.Database.Migrate();
+
         string[] roleNames = 
         {
             UserRoles.SUPER_ADMIN,

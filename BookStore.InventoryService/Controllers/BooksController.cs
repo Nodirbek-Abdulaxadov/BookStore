@@ -118,7 +118,7 @@ public class BooksController(IBookInterface books,
     {
         HttpClient client = new();
         var fileName = imageUrl.Split('/').Last();
-        var response = await client.DeleteAsync($"https://localhost:5001/gateway/Images/{fileName}");
+        var response = await client.DeleteAsync($"https://localhost:6007/gateway/Images/{fileName}");
         if (!response.IsSuccessStatusCode)
         {
             throw new Exception("Image deletion failed");

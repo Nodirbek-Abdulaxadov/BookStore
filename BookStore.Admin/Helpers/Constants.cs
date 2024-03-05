@@ -2,5 +2,5 @@
 
 public static class Constants
 {
-    public const string BASE_URL = "https://localhost:5001/gateway/";
+    public const string BASE_URL = "https://localhost:6007/gateway/";
 }

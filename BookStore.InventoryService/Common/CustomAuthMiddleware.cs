@@ -28,7 +28,7 @@ public class CustomAuthMiddleware
             }
 			var httpClient = new HttpClient();
 			httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-			var response = await httpClient.GetAsync("https://localhost:5001/gateway/auth/check-auth");
+			var response = await httpClient.GetAsync("https://bookstore.apigateway:6007/gateway/auth/check-auth");
 			if (response.StatusCode == HttpStatusCode.OK)
 			{
 				await _next(context);

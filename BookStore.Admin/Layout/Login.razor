@@ -43,7 +43,7 @@
         var data = new StringContent(json, Encoding.UTF8, "application/json");
         var response = await Http.PostAsync(Constants.BASE_URL + "auth/login", data);
         if (response.IsSuccessStatusCode)
-{
+        {
             var content = await response.Content.ReadAsStringAsync();
             var result = JsonSerializer.Deserialize<LoginResult>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             await LocalStorage.SetItemAsync("authToken", result.Token);
